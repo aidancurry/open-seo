@@ -13,7 +13,7 @@ If OpenSEO appears in your **Plugins** directory, install it, approve the OpenSE
 
 Ask: “Use OpenSEO to check my connection and list my projects.” The check uses no OpenSEO credits. A tool call followed by your projects, or an empty list, confirms that this chat is connected.
 
-Free / Go desktop access depends on OpenAI's rollout. CLI and web access have different plan requirements; see [OpenAI's plan support](https://learn.chatgpt.com/docs/pricing). Installing in Codex does not connect a regular chat on chatgpt.com. For that, use the [ChatGPT guide](/docs/chatgpt).
+Check [OpenAI's plan support](https://learn.chatgpt.com/docs/pricing) for access to your Codex client. Installing in Codex does not connect a regular chat on chatgpt.com. For that, use the [ChatGPT guide](/docs/chatgpt).
 
 ## Install in the CLI
 

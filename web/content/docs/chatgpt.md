@@ -3,24 +3,22 @@ title: "Use OpenSEO with ChatGPT"
 description: "Connect OpenSEO on chatgpt.com or in the ChatGPT desktop app, check plan requirements, and verify the connection."
 ---
 
+**You need ChatGPT Plus or higher for the custom OpenSEO connection in this guide. Free and Go do not support it. Plus is enough; Pro is not required.** Supported plans are Plus, Pro, Business, Enterprise, and Edu. Workspace permissions can also limit access.
+
 Connect OpenSEO before asking ChatGPT to do SEO research. Pasting the agent setup prompt into a regular conversation does not install a connection.
 
 ## Choose your setup path
 
-| Where you want to work                         | How to connect                                               | Plan requirements                                                              |
-| ---------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------ |
-| ChatGPT on the web                             | Add OpenSEO as a custom MCP connection using the steps below | Plus, Pro, Business, Enterprise, or Edu; workspace permission also applies     |
-| Codex in the ChatGPT desktop app               | Open Codex and paste the agent setup prompt                  | Free / Go desktop access is subject to rollout; paid plans have broader access |
-| A ChatGPT Plugins directory that lists OpenSEO | Install from the listing and sign in                         | Availability depends on your account, workspace, and the listing               |
-| OpenSEO in your browser                        | Use keyword research, audits, and other app pages directly   | Your OpenSEO account and plan apply; no ChatGPT subscription needed            |
+| Where you want to work           | How to connect                                               |
+| -------------------------------- | ------------------------------------------------------------ |
+| ChatGPT on the web               | Add OpenSEO as a custom MCP connection using the steps below |
+| Codex in the ChatGPT desktop app | Open Codex and paste the agent setup prompt                  |
 
-**Free or Go on chatgpt.com:** the custom MCP route below is not supported. You can try Codex in the desktop app where available, or use [OpenSEO directly](https://app.openseo.so). Buying ChatGPT Pro is not required for every setup path. OpenSEO billing is separate from your ChatGPT subscription.
-
-These requirements follow [OpenAI's developer-mode documentation](https://developers.openai.com/api/docs/guides/developer-mode) and [Codex plan support](https://learn.chatgpt.com/docs/pricing). OpenAI can change availability and menu labels. Check those pages if your account differs from this guide.
+OpenSEO billing is separate from your ChatGPT subscription. The custom connection requirements follow [OpenAI's developer-mode documentation](https://developers.openai.com/api/docs/guides/developer-mode). See [OpenAI's plan support](https://learn.chatgpt.com/docs/pricing) for Codex access.
 
 ## ChatGPT on the web
 
-1. Sign in to [chatgpt.com](https://chatgpt.com) with a supported plan.
+1. Sign in to [chatgpt.com](https://chatgpt.com) with Plus or another supported plan.
 2. If your version shows it, open **Settings → Security and login** and enable **Developer mode**. Some versions expose the custom connection flow directly in Plugins.
 3. Open **Plugins**, select **+**, then **Create MCP App**. In versions with the older interface, look for **Settings → Apps → Advanced settings → Developer mode**, then **Create** or **Add custom app**.
 4. Enter these details:
@@ -43,11 +41,11 @@ See [OpenAI's connection guide](https://developers.openai.com/plugins/deploy/con
 
 ## ChatGPT desktop
 
-The desktop app offers ChatGPT and Codex. For agent-assisted setup, open **Codex** and start a new chat, then copy the [agent setup prompt](/docs/agent-setup#set-up-your-agent) into that chat. Codex can configure its own connection and guide you through sign-in. Approve the OpenSEO login when prompted.
+If you already use Codex in the desktop app, start a new **Codex** chat, then copy the [agent setup prompt](/docs/agent-setup#set-up-your-agent) into that chat. Codex can configure its own connection and guide you through sign-in. Approve the OpenSEO login when prompted.
 
 If you prefer manual setup, follow the [Codex plugin guide](/docs/codex-plugin#desktop-app), or add the [MCP connection alone](/docs/mcp#codex-in-the-chatgpt-desktop-app). Start a new Codex chat after installation if needed, then run the connection check below.
 
-For a regular ChatGPT chat in the desktop app, check **Plugins**. If OpenSEO is listed for your account, install it, sign in, start a new chat, and select OpenSEO. If it isn't available, use the web custom-connection flow on an eligible plan or open Codex in the desktop app.
+For a regular ChatGPT chat in the desktop app, check **Plugins**. If OpenSEO is listed for your account, install it, sign in, start a new chat, and select OpenSEO. If it isn't available, follow the web setup steps above with ChatGPT Plus or higher.
 
 Codex and ChatGPT web use separate connections. Run the connection check in the chat where you want to use OpenSEO.
 
@@ -77,7 +75,7 @@ Directory plugins may also include SEO Coach and other skills. Use the available
 
 | What you see                                            | What to do                                                                                                                                                                                                   |
 | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| No Developer mode or Create MCP App option              | Free / Go do not support the custom web route. On an eligible paid plan, check workspace permissions and the current Plugins interface. Use desktop Codex where available or OpenSEO directly.               |
+| No Developer mode or Create MCP App option              | You need Plus or higher for the custom connection. Free and Go do not support it. On a supported plan, check workspace permissions and the current Plugins interface.                                        |
 | No OpenSEO listing                                      | A GitHub marketplace plugin is not automatically a public ChatGPT listing. Use the custom web connection or the Codex repository plugin steps.                                                               |
 | ChatGPT asks for a client ID or secret                  | Keep OAuth selected and wait for discovery. Open Advanced OAuth settings and use Dynamic Client Registration (DCR) if offered. You should not need to supply your own client credentials for hosted OpenSEO. |
 | The login window never appears                          | Allow the sign-in window to open, then retry authentication from the OpenSEO connection's details.                                                                                                           |

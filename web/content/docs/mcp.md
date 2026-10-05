@@ -21,7 +21,7 @@ No account yet? Try the [free SEO tools](/tools).
 
 ## ChatGPT web and desktop
 
-Follow the [ChatGPT setup guide](/docs/chatgpt). Custom MCP setup on chatgpt.com requires Plus, Pro, Business, Enterprise, or Edu and workspace permission. Free / Go users can try Codex in the desktop app where available, or use OpenSEO directly. Pasting a setup prompt into a regular ChatGPT chat does not install a connection.
+Follow the [ChatGPT setup guide](/docs/chatgpt). The custom ChatGPT connection requires Plus or higher. Free and Go do not support it. Plus is enough; Pro is not required. Workspace permissions can also limit access. Pasting a setup prompt into a regular ChatGPT chat does not install a connection.
 
 ## Claude Code
 

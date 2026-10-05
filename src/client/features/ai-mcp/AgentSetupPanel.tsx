@@ -32,14 +32,14 @@ export function AgentSetupPanel({
           Pasting a setup prompt into a regular ChatGPT conversation does not
           install OpenSEO. Add the connection first.
         </p>
+        <p className="text-muted-foreground">
+          You need ChatGPT Plus or higher for this custom connection. Free and
+          Go do not support it. Pro is not required. Workspace permissions can
+          also limit access.
+        </p>
         {hosted ? (
           <div className="rounded-xl border border-border p-5 space-y-4">
             <p className="font-medium">ChatGPT on the web</p>
-            <p className="text-muted-foreground">
-              The custom connection requires ChatGPT Plus, Pro, Business,
-              Enterprise, or Edu. Free and Go do not support this route.
-              Workspace permissions can also limit access.
-            </p>
             <ol className="list-decimal space-y-2 pl-5">
               <li>
                 Open chatgpt.com. If available, enable{" "}
@@ -93,14 +93,10 @@ export function AgentSetupPanel({
           </p>
         )}
         <p className="text-muted-foreground">
-          <strong className="text-foreground">
-            ChatGPT desktop or Free / Go?
-          </strong>{" "}
-          Open Codex in the desktop app, then select{" "}
-          <strong>Codex / other agents</strong> above and copy the setup prompt.
-          Free / Go desktop access depends on OpenAI’s rollout. You can also use
-          the OpenSEO app directly. A desktop Codex connection does not connect
-          ChatGPT on the web.
+          <strong className="text-foreground">Already using Codex?</strong>{" "}
+          Select <strong>Codex / other agents</strong> above and copy the setup
+          prompt. A desktop Codex connection does not connect ChatGPT on the
+          web.
         </p>
         <a
           href="https://openseo.so/docs/chatgpt"
