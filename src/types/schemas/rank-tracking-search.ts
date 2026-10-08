@@ -24,7 +24,7 @@ export type RankTrackingListSearch = z.infer<
 
 /** /p/$projectId/rank-tracking/$configId query params. */
 export const rankTrackingDetailSearchSchema = z.object({
-  view: z.literal("history").optional().catch(undefined),
+  view: z.enum(["history", "competitors"]).optional().catch(undefined),
   device: z.enum(["desktop", "mobile"]).optional().catch(undefined),
   compare: comparePeriodSchema.optional().catch(undefined),
   sort: z

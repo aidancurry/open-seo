@@ -15,14 +15,18 @@ import type {
 /** DataForSEO Live API: cost of first page (10 results) */
 const LIVE_BASE_PAGE_COST_USD = 0.002;
 
-/** DataForSEO Live API: cost of each additional page (75% of base) */
-const LIVE_EXTRA_PAGE_COST_USD = 0.0015;
+/**
+ * DataForSEO Live API: cost of each additional page. DataForSEO bills every
+ * 10-result page at the full base price (measured on the queue: depth 30 =
+ * $0.0018), and rank checks always crawl the full depth.
+ */
+const LIVE_EXTRA_PAGE_COST_USD = LIVE_BASE_PAGE_COST_USD;
 
 /** DataForSEO task queue (standard priority): cost of first page (10 results) */
 const QUEUED_BASE_PAGE_COST_USD = 0.0006;
 
-/** DataForSEO task queue (standard priority): cost of each additional page (75% of base) */
-const QUEUED_EXTRA_PAGE_COST_USD = 0.00045;
+/** DataForSEO task queue (standard priority): each additional page, billed at the full base price */
+const QUEUED_EXTRA_PAGE_COST_USD = QUEUED_BASE_PAGE_COST_USD;
 
 /**
  * How a rank check reaches DataForSEO: "live" is the instant endpoint used for

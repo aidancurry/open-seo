@@ -1,4 +1,4 @@
-import { CalendarDays, SlidersHorizontal, Table } from "lucide-react";
+import { CalendarDays, SlidersHorizontal, Table, Users } from "lucide-react";
 import { SegmentedToggle } from "@/client/components/SegmentedToggle";
 import { ExportMenu } from "@/client/components/ExportMenu";
 import { Badge } from "@/client/components/ui/badge";
@@ -35,8 +35,8 @@ export function RankTrackingTableToolbar({
     | null
     | undefined;
   keywordCount: number;
-  viewMode: "table" | "history";
-  onViewModeChange: (v: "table" | "history") => void;
+  viewMode: "table" | "history" | "competitors";
+  onViewModeChange: (v: "table" | "history" | "competitors") => void;
   historyAvailable: boolean;
   onExport: (action: "sheets" | "csv" | "copy-list") => void;
   onCheckNow: () => void;
@@ -49,40 +49,52 @@ export function RankTrackingTableToolbar({
 }) {
   return (
     <div className="shrink-0 flex flex-wrap items-center gap-2 px-4 py-2 border-y border-border">
-      {/* History needs at least two checks to compare; until then the toggle
-          would only offer a worse copy of the Latest table. */}
-      {historyAvailable && (
-        <SegmentedToggle
-          showLabels
-          items={[
-            {
-              value: "table" as const,
-              icon: <Table className="size-3.5" />,
-              label: "Latest",
-            },
-            {
-              value: "history" as const,
-              icon: <CalendarDays className="size-3.5" />,
-              label: "History",
-            },
-          ]}
-          value={viewMode}
-          onChange={onViewModeChange}
-        />
-      )}
+      <SegmentedToggle
+        showLabels
+        items={[
+          {
+            value: "table" as const,
+            icon: <Table className="size-3.5" />,
+            label: "Latest",
+          },
+          // History needs at least two checks to compare; until then it
+          // would only offer a worse copy of the Latest table.
+          ...(historyAvailable
+            ? [
+                {
+                  value: "history" as const,
+                  icon: <CalendarDays className="size-3.5" />,
+                  label: "History",
+                },
+              ]
+            : []),
+          {
+            value: "competitors" as const,
+            icon: <Users className="size-3.5" />,
+            label: "Competitors",
+          },
+        ]}
+        value={viewMode}
+        onChange={onViewModeChange}
+      />
 
-      <Button
-        variant="outline"
-        size="sm"
-        aria-pressed={showFilters}
-        className="aria-pressed:bg-muted aria-pressed:text-foreground"
-        onClick={onToggleFilters}
-        title="Toggle table filters"
-      >
-        <SlidersHorizontal data-icon="inline-start" />
-        Filters
-        {activeFilterCount > 0 && <Badge size="sm">{activeFilterCount}</Badge>}
-      </Button>
+      {/* Filters and exports act on the keyword table, not the competitor view. */}
+      {viewMode !== "competitors" && (
+        <Button
+          variant="outline"
+          size="sm"
+          aria-pressed={showFilters}
+          className="aria-pressed:bg-muted aria-pressed:text-foreground"
+          onClick={onToggleFilters}
+          title="Toggle table filters"
+        >
+          <SlidersHorizontal data-icon="inline-start" />
+          Filters
+          {activeFilterCount > 0 && (
+            <Badge size="sm">{activeFilterCount}</Badge>
+          )}
+        </Button>
+      )}
 
       {isRunning && latestRun ? (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -110,12 +122,14 @@ export function RankTrackingTableToolbar({
 
       <div className="flex-1" />
 
-      <ExportMenu
-        actions={["sheets", "csv", "copy-list"]}
-        copyListLabel="Copy keywords"
-        onExport={onExport}
-        disabled={!hasData}
-      />
+      {viewMode !== "competitors" && (
+        <ExportMenu
+          actions={["sheets", "csv", "copy-list"]}
+          copyListLabel="Copy keywords"
+          onExport={onExport}
+          disabled={!hasData}
+        />
+      )}
 
       {/* Both actions need a paid plan; free users get the page's upgrade
           alert instead of a menu whose items fail. */}

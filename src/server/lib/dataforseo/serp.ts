@@ -30,23 +30,6 @@ export function clampSerpDepth(depth: number): number {
   return Math.min(100, Math.max(10, depth));
 }
 
-/**
- * Stop crawling SERP pages once the target domain is found — DataForSEO only
- * bills the pages crawled, so a page-1 ranking at depth 20 costs one page
- * instead of two. Matching is restricted to organic results and uses
- * with_subdomains, mirroring buildRankCheckResult exactly: without
- * find_targets_in, a sitelink or PAA mention could stop the crawl before the
- * domain's organic listing and record a false "not ranking".
- */
-function stopCrawlOnTarget(targetDomain: string) {
-  return {
-    stop_crawl_on_match: [
-      { match_value: targetDomain, match_type: "with_subdomains" },
-    ],
-    find_targets_in: ["organic"],
-  };
-}
-
 // Kept as a hand-written schema: the SDK's BaseSerpApiElementItem type omits
 // etv / estimated_paid_traffic_cost / backlinks_info / rank_changes, which we
 // rely on. The fields survive deserialization (the SDK copies unknown keys), so
@@ -123,12 +106,28 @@ export async function fetchLiveSerp(input: {
   };
 }
 
+interface RankCheckOrganicResult {
+  position: number;
+  /** Lowercased, without a leading `www.`. */
+  domain: string;
+  url: string | null;
+}
+
 export interface RankCheckResult {
   keywordId: string;
   keyword: string;
   position: number | null;
   url: string | null;
   serpFeatures: string[];
+  /** Every organic result in the crawled depth, in SERP order. */
+  organicResults: RankCheckOrganicResult[];
+}
+
+// rank_group = position among organic results only (what users count as
+// "my ranking"). rank_absolute would also count SERP features (local pack,
+// PAA, AI overviews) and reads as worse than what users see.
+function organicPosition(item: SerpLiveItem): number | null {
+  return item.rank_group ?? item.rank_absolute ?? null;
 }
 
 function buildRankCheckResult(
@@ -142,17 +141,24 @@ function buildRankCheckResult(
     return domain === target || domain.endsWith(`.${target}`);
   });
 
+  const organicResults: RankCheckOrganicResult[] = [];
+  for (const item of items) {
+    const position = organicPosition(item);
+    if (item.type !== "organic" || !item.domain || position === null) continue;
+    organicResults.push({
+      position,
+      domain: item.domain.toLowerCase().replace(/^www\./, ""),
+      url: item.url ?? null,
+    });
+  }
+
   return {
     keywordId: input.keywordId,
     keyword: input.keyword,
-    // rank_group = position among organic results only (what users count as
-    // "my ranking"). rank_absolute would also count SERP features (local
-    // pack, PAA, AI overviews) and reads as worse than what users see.
-    position: organicMatch
-      ? (organicMatch.rank_group ?? organicMatch.rank_absolute ?? null)
-      : null,
+    position: organicMatch ? organicPosition(organicMatch) : null,
     url: organicMatch?.url ?? null,
     serpFeatures: [...new Set(items.map((item) => item.type).filter(Boolean))],
+    organicResults,
   };
 }
 
@@ -179,8 +185,10 @@ export async function fetchRankCheckSerp(input: {
         language_code: input.languageCode,
         device: input.device,
         os: input.device === "desktop" ? "windows" : "android",
+        // Rank checks always crawl the full depth (no stop_crawl_on_match):
+        // every organic result is stored so competitors can be compared
+        // from the same pull.
         depth,
-        ...stopCrawlOnTarget(input.targetDomain),
       },
     ],
   );
@@ -223,7 +231,6 @@ export async function postRankCheckTasks(input: {
   languageCode: string;
   locationName?: string;
   depth: number;
-  targetDomain: string;
 }): Promise<DataforseoApiResponse<PostedRankCheckTask[]>> {
   if (input.tasks.length === 0 || input.tasks.length > MAX_TASKS_PER_POST) {
     throw new AppError(
@@ -245,12 +252,8 @@ export async function postRankCheckTasks(input: {
       language_code: input.languageCode,
       device: task.device,
       os: task.device === "desktop" ? "windows" : "android",
+      // Full depth, like the live path: the whole organic SERP is stored.
       depth,
-      // Queued tasks are billed provisionally at full depth at post time;
-      // task_get later reports the reduced actual cost when the crawl
-      // stopped early. We meter customers on the post-time amount —
-      // collection-time metering is a possible future optimization.
-      ...stopCrawlOnTarget(input.targetDomain),
       // Echoed back on the response entry and task_get; used to map a
       // DataForSEO task id back to our keyword without relying on order.
       tag: `${task.keywordId}:${task.device}`,
@@ -304,9 +307,8 @@ type RankCheckTaskOutcome =
 /**
  * Collect one queued task's result. Deliberately not metered and not wrapped
  * in the billing envelope: collection is free (the task was charged at
- * task_post), and the task_get response carries the task's settled cost
- * (reduced when stop_crawl_on_match ended the crawl early) — running it
- * through the metering seam would charge the customer twice.
+ * task_post), and the task_get response carries the task's settled cost —
+ * running it through the metering seam would charge the customer twice.
  */
 export async function fetchRankCheckTaskResult(input: {
   taskId: string;

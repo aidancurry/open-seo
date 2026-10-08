@@ -92,6 +92,7 @@ export const {
   rankTrackingKeywords,
   rankCheckRuns,
   rankSnapshots,
+  rankSerpResults,
   organizationActivationState,
   projectActivationState,
   dashboardStepDismissals,

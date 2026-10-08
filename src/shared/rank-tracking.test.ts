@@ -16,8 +16,8 @@ describe("rank tracking cost estimates", () => {
       keywordCount: 1000,
       devices: "both" as const,
       depth: 40,
-      costUsd: 16.64,
-      costCredits: 18_000,
+      costUsd: 20.48,
+      costCredits: 22_000,
     },
     {
       method: "queued" as const,
@@ -32,8 +32,8 @@ describe("rank tracking cost estimates", () => {
       keywordCount: 1000,
       devices: "both" as const,
       depth: 40,
-      costUsd: 4.992,
-      costCredits: 5_000,
+      costUsd: 6.144,
+      costCredits: 6_160,
     },
   ])(
     "matches per-call billing for $method checks",

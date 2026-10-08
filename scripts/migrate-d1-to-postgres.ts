@@ -247,6 +247,7 @@ function deltaPredicate(table: string, cutoffIso: string): string | null {
     case "keyword_metrics":
       return `datetime("fetched_at") >= ${since}`;
     case "rank_snapshots":
+    case "rank_serp_results":
       return `datetime("checked_at") >= ${since}`;
     // Audit child rows carry no timestamp of their own — scope by parent audit.
     case "audit_pages":

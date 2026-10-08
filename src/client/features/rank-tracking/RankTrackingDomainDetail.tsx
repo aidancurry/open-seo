@@ -25,6 +25,7 @@ import {
   RankTrackingHistoryMatrix,
 } from "./RankTrackingHistoryMatrix";
 import { RankTrackingTableToolbar } from "./RankTrackingTableToolbar";
+import { RankTrackingCompetitors } from "./RankTrackingCompetitors";
 import { exportRankTracking } from "./RankTrackingTableParts";
 import type { RankTrackingConfig } from "@/types/schemas/rank-tracking";
 import {
@@ -221,7 +222,8 @@ export function RankTrackingDomainDetail({
       ? undefined
       : search.sort;
   // Fall back to the table if history disappears (e.g. device switch).
-  const effectiveViewMode = historyAvailable ? viewMode : "table";
+  const effectiveViewMode =
+    viewMode === "history" && !historyAvailable ? "table" : viewMode;
   const exportFiltered = (format: "csv" | "sheets") =>
     exportRankTracking({
       format,
@@ -316,7 +318,7 @@ export function RankTrackingDomainDetail({
           keywordCount={filtered.length}
           viewMode={effectiveViewMode}
           onViewModeChange={(view) =>
-            onSearchChange({ view: view === "history" ? view : undefined })
+            onSearchChange({ view: view === "table" ? undefined : view })
           }
           historyAvailable={historyAvailable}
           onExport={(action) => {
@@ -338,7 +340,7 @@ export function RankTrackingDomainDetail({
         />
 
         {/* Filters panel */}
-        {showFilters && (
+        {showFilters && effectiveViewMode !== "competitors" && (
           <FilterPanel
             draft={filterDraft}
             setDraft={setFilterDraft}
@@ -349,7 +351,15 @@ export function RankTrackingDomainDetail({
 
         {/* Table */}
         <div className="p-4">
-          {effectiveViewMode === "history" ? (
+          {effectiveViewMode === "competitors" ? (
+            <RankTrackingCompetitors
+              projectId={projectId}
+              configId={config.id}
+              domain={config.domain}
+              device={activeDevice}
+              serpDepth={config.serpDepth}
+            />
+          ) : effectiveViewMode === "history" ? (
             <RankTrackingHistoryMatrix
               cells={matrixCells ?? []}
               keywords={filtered.map((r) => ({

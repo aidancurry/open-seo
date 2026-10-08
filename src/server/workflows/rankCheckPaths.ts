@@ -25,20 +25,39 @@ type RankCheckResultWithDevice = RankCheckResult & {
   device: "desktop" | "mobile";
 };
 
-function mapResultsToSnapshotRows(
+/**
+ * Persist each result's snapshot and its full organic SERP. Both inserts are
+ * conflict-safe, so a retried step re-writing the same results is a no-op.
+ */
+async function persistResults(
   runId: string,
   results: RankCheckResultWithDevice[],
 ) {
-  return results.map((r) => ({
-    runId,
-    trackingKeywordId: r.keywordId,
-    keyword: r.keyword,
-    device: r.device,
-    position: r.position,
-    url: r.url,
-    serpFeatures:
-      r.serpFeatures.length > 0 ? JSON.stringify(r.serpFeatures) : null,
-  }));
+  await RankTrackingRepository.insertSnapshots(
+    results.map((r) => ({
+      runId,
+      trackingKeywordId: r.keywordId,
+      keyword: r.keyword,
+      device: r.device,
+      position: r.position,
+      url: r.url,
+      serpFeatures:
+        r.serpFeatures.length > 0 ? JSON.stringify(r.serpFeatures) : null,
+    })),
+  );
+  await RankTrackingRepository.insertSerpResults(
+    results.flatMap((r) =>
+      r.organicResults.map((item) => ({
+        runId,
+        trackingKeywordId: r.keywordId,
+        keyword: r.keyword,
+        device: r.device,
+        position: item.position,
+        domain: item.domain,
+        url: item.url,
+      })),
+    ),
+  );
 }
 
 interface CheckContext {
@@ -126,9 +145,7 @@ async function checkBatchLive(
     await RankTrackingRepository.setRunErrorIfEmpty(ctx.runId, firstError);
   }
   if (results.length > 0) {
-    await RankTrackingRepository.insertSnapshots(
-      mapResultsToSnapshotRows(ctx.runId, results),
-    );
+    await persistResults(ctx.runId, results);
   }
   return results.length;
 }
@@ -186,8 +203,8 @@ const TASK_GETS_PER_COLLECT = 500;
 
 // Collect steps may issue hundreds of task_get calls, so they get more room
 // than SINGLE_ATTEMPT_STEP_CONFIG's 2-minute timeout. Unlike the metered
-// steps, retrying is safe and free: task_get isn't charged and snapshot
-// inserts are onConflictDoNothing.
+// steps, retrying is safe and free: task_get isn't charged and snapshot and
+// SERP inserts are onConflictDoNothing.
 const COLLECT_STEP_CONFIG = {
   retries: { limit: 2, delay: "10 seconds" as const },
   timeout: "5 minutes" as const,
@@ -255,9 +272,7 @@ async function collectQueuedRound(
     await RankTrackingRepository.setRunErrorIfEmpty(ctx.runId, firstError);
   }
   if (completed.length > 0) {
-    await RankTrackingRepository.insertSnapshots(
-      mapResultsToSnapshotRows(ctx.runId, completed),
-    );
+    await persistResults(ctx.runId, completed);
     // Progress for the UI; finalize recounts from the DB anyway.
     const snapshots = await RankTrackingRepository.getSnapshotsForRun(
       ctx.runId,
@@ -318,7 +333,6 @@ export async function runQueuedCheck(
             languageCode: ctx.languageCode,
             locationName: ctx.locationName,
             depth: ctx.serpDepth,
-            targetDomain: ctx.domain,
           }),
       );
     } catch (error) {

@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- application table declarations */
 import { sql } from "drizzle-orm";
 import {
   bigint,
@@ -353,6 +354,41 @@ export const rankSnapshots = pgTable(
       table.trackingKeywordId,
       table.device,
     ),
+  ],
+);
+
+// Full organic SERP per keyword, device and run (see the SQLite twin).
+export const rankSerpResults = pgTable(
+  "rank_serp_results",
+  {
+    id: serial("id").primaryKey(),
+    runId: text("run_id")
+      .notNull()
+      .references(() => rankCheckRuns.id, { onDelete: "cascade" }),
+    // No FK to rankTrackingKeywords, like rankSnapshots.
+    trackingKeywordId: text("tracking_keyword_id").notNull(),
+    keyword: text("keyword").notNull(),
+    device: text("device", { enum: ["desktop", "mobile"] }).notNull(),
+    position: integer("position").notNull(),
+    domain: text("domain").notNull(),
+    url: text("url"),
+    checkedAt: timestampColumn("checked_at").notNull().default(isoNow),
+  },
+  (table) => [
+    // Also serves runId lookups (leftmost column), and makes a retried
+    // collect step's re-insert a no-op.
+    uniqueIndex("rank_serp_results_run_keyword_device_position_idx").on(
+      table.runId,
+      table.trackingKeywordId,
+      table.device,
+      table.position,
+    ),
+    index("rank_serp_results_keyword_device_idx").on(
+      table.trackingKeywordId,
+      table.device,
+      table.checkedAt,
+    ),
+    index("rank_serp_results_domain_idx").on(table.domain),
   ],
 );
 

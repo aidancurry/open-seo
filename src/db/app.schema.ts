@@ -365,6 +365,46 @@ export const rankSnapshots = sqliteTable(
   ],
 );
 
+// One row per organic result per keyword per device per check run: the full
+// SERP a rank check crawled, so every competitor can be compared from the same
+// pull. Domains are lowercased with a leading `www.` stripped.
+export const rankSerpResults = sqliteTable(
+  "rank_serp_results",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    runId: text("run_id")
+      .notNull()
+      .references(() => rankCheckRuns.id, { onDelete: "cascade" }),
+    // No FK to rankTrackingKeywords, like rankSnapshots: history outlives a
+    // removed keyword.
+    trackingKeywordId: text("tracking_keyword_id").notNull(),
+    keyword: text("keyword").notNull(),
+    device: text("device", { enum: ["desktop", "mobile"] }).notNull(),
+    position: integer("position").notNull(),
+    domain: text("domain").notNull(),
+    url: text("url"),
+    checkedAt: text("checked_at")
+      .notNull()
+      .default(sql`(current_timestamp)`),
+  },
+  (table) => [
+    // Also serves runId lookups (leftmost column), and makes a retried
+    // collect step's re-insert a no-op.
+    uniqueIndex("rank_serp_results_run_keyword_device_position_idx").on(
+      table.runId,
+      table.trackingKeywordId,
+      table.device,
+      table.position,
+    ),
+    index("rank_serp_results_keyword_device_idx").on(
+      table.trackingKeywordId,
+      table.device,
+      table.checkedAt,
+    ),
+    index("rank_serp_results_domain_idx").on(table.domain),
+  ],
+);
+
 // Dashboard activation milestones. Organization-scoped: MCP OAuth grants are
 // user-level, so any member connecting an external MCP client satisfies the
 // milestone for the whole organization. Timestamps are first-occurrence only

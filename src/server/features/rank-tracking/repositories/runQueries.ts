@@ -1,7 +1,8 @@
 import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 import type { InferInsertModel } from "drizzle-orm";
+import { chunk } from "remeda";
 import { db } from "@/db";
-import { rankCheckRuns, rankSnapshots } from "@/db/schema";
+import { rankCheckRuns, rankSerpResults, rankSnapshots } from "@/db/schema";
 import { executeInBatches } from "@/db/runBatch";
 
 // ---------------------------------------------------------------------------
@@ -113,6 +114,33 @@ export async function insertSnapshots(
           rankSnapshots.runId,
           rankSnapshots.trackingKeywordId,
           rankSnapshots.device,
+        ],
+      }),
+  );
+}
+
+// Each row binds 7 parameters (id and checked_at take column defaults), so 14
+// rows keep a multi-row insert under D1's ~100 bound-parameter cap.
+const SERP_ROWS_PER_STATEMENT = 14;
+
+export async function insertSerpResults(
+  rows: Array<
+    Omit<InferInsertModel<typeof rankSerpResults>, "id" | "checkedAt">
+  >,
+) {
+  // Conflict target is the (run, keyword, device, position) unique index, so
+  // a retried collect step re-inserting the same SERP is a no-op. Each chunk
+  // is independently safe to commit.
+  await executeInBatches(chunk(rows, SERP_ROWS_PER_STATEMENT), (tx, values) =>
+    tx
+      .insert(rankSerpResults)
+      .values(values)
+      .onConflictDoNothing({
+        target: [
+          rankSerpResults.runId,
+          rankSerpResults.trackingKeywordId,
+          rankSerpResults.device,
+          rankSerpResults.position,
         ],
       }),
   );

@@ -4,6 +4,7 @@ import { RankTrackingRepository } from "@/server/features/rank-tracking/reposito
 import { RankTrackingService } from "@/server/features/rank-tracking/services/RankTrackingService";
 import { RankTrackingKeywordService } from "@/server/features/rank-tracking/services/RankTrackingKeywordService";
 import { getLatestResults } from "@/server/features/rank-tracking/services/rankTrackingResults";
+import { getCompetitorOverview } from "@/server/features/rank-tracking/services/rankTrackingCompetitors";
 import { AppError, asAppError } from "@/server/lib/errors";
 import { captureServerEvent } from "@/server/lib/posthog";
 import { requireProjectContext } from "@/serverFunctions/middleware";
@@ -22,6 +23,8 @@ import {
   getKeywordHistorySchema,
   getConfigTrendSchema,
   getPositionMatrixSchema,
+  getCompetitorsSchema,
+  getKeywordSerpSchema,
 } from "@/types/schemas/rank-tracking";
 
 export interface RankKeywordHistoryPoint {
@@ -353,4 +356,31 @@ export const getRankPositionMatrix = createServerFn({ method: "POST" })
       data.device,
       data.runLimit,
     );
+  });
+
+export const getRankCompetitors = createServerFn({ method: "POST" })
+  .middleware(requireProjectContext)
+  .validator(getCompetitorsSchema)
+  .handler(async ({ data, context }) => {
+    return getCompetitorOverview({
+      configId: data.configId,
+      projectId: context.projectId,
+      device: data.device,
+      runId: data.runId,
+    });
+  });
+
+export const getRankKeywordSerp = createServerFn({ method: "POST" })
+  .middleware(requireProjectContext)
+  .validator(getKeywordSerpSchema)
+  .handler(async ({ data, context }) => {
+    // The config lookup is project-scoped; the SERP query is then scoped to
+    // the config through the run.
+    await requireConfig(data.configId, context.projectId);
+    return RankTrackingRepository.getKeywordSerp({
+      configId: data.configId,
+      runId: data.runId,
+      trackingKeywordId: data.trackingKeywordId,
+      device: data.device,
+    });
   });

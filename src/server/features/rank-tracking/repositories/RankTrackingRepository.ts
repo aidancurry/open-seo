@@ -35,8 +35,16 @@ import {
   getLatestRunForConfig,
   getActiveRunForConfig,
   insertSnapshots,
+  insertSerpResults,
   getSnapshotsForRun,
 } from "./runQueries";
+import {
+  getSerpRunsForConfig,
+  getCompetitorDomains,
+  countSerpDomains,
+  getRunKeywordsWithLeader,
+  getKeywordSerp,
+} from "./serpQueries";
 
 // ---------------------------------------------------------------------------
 // Config CRUD
@@ -402,6 +410,7 @@ export const RankTrackingRepository = {
   getLatestRunForConfig,
   getActiveRunForConfig,
   insertSnapshots,
+  insertSerpResults,
   getSnapshotsForRun,
   getKeywordsForConfig,
   addKeywordsToConfig,
@@ -416,4 +425,9 @@ export const RankTrackingRepository = {
   getKeywordHistory,
   getConfigTrend,
   getPositionMatrix,
+  getSerpRunsForConfig,
+  getCompetitorDomains,
+  countSerpDomains,
+  getRunKeywordsWithLeader,
+  getKeywordSerp,
 };

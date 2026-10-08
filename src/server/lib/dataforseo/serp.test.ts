@@ -97,7 +97,6 @@ describe("rank check task queue", () => {
       locationCode: 2840,
       languageCode: "en",
       depth: 20,
-      targetDomain: "example.com",
     });
 
     expect(
@@ -108,18 +107,12 @@ describe("rank check task queue", () => {
       ),
     ).toEqual(["https://api.dataforseo.com/v3/serp/google/organic/task_post"]);
 
-    // Every posted task asks DataForSEO to stop crawling at the target's
-    // organic listing — that is what cuts the actual crawl cost for ranking
-    // domains without false "not ranking" stops on sitelinks/PAA mentions.
-    const stopCrawl = {
-      stop_crawl_on_match: [
-        { match_value: "example.com", match_type: "with_subdomains" },
-      ],
-      find_targets_in: ["organic"],
-    };
-    expect(
-      parseDataforseoRequestBody(fetchMock.mock.calls[0]?.[1]),
-    ).toMatchObject([stopCrawl, stopCrawl, stopCrawl]);
+    // Every posted task crawls the full depth: the whole organic SERP is
+    // stored for competitor comparison, so the crawl must not stop early at
+    // the tracked domain.
+    const body = parseDataforseoRequestBody(fetchMock.mock.calls[0]?.[1]);
+    expect(body).toMatchObject([{ depth: 20 }, { depth: 20 }, { depth: 20 }]);
+    expect(JSON.stringify(body)).not.toContain("stop_crawl_on_match");
     expect(result.data).toEqual([
       {
         keyword: "alpha",
@@ -164,7 +157,7 @@ describe("rank check task queue", () => {
     expect(outcome).toEqual({ status: "pending" });
   });
 
-  it("parses a completed queued task into a rank check result", async () => {
+  it("parses a completed queued task into a rank check result with its organic SERP", async () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
       Response.json({
         status_code: 20000,
@@ -177,6 +170,18 @@ describe("rank check task queue", () => {
             result: [
               {
                 items: [
+                  {
+                    type: "people_also_ask",
+                    rank_group: 1,
+                    rank_absolute: 1,
+                  },
+                  {
+                    type: "organic",
+                    rank_group: 1,
+                    rank_absolute: 2,
+                    domain: "WWW.Rival.com",
+                    url: "https://www.rival.com/",
+                  },
                   {
                     type: "organic",
                     rank_group: 3,
@@ -207,7 +212,15 @@ describe("rank check task queue", () => {
         keyword: "alpha",
         position: 3,
         url: "https://www.example.com/page",
-        serpFeatures: ["organic"],
+        serpFeatures: ["people_also_ask", "organic"],
+        organicResults: [
+          { position: 1, domain: "rival.com", url: "https://www.rival.com/" },
+          {
+            position: 3,
+            domain: "example.com",
+            url: "https://www.example.com/page",
+          },
+        ],
       },
     });
   });

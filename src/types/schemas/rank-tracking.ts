@@ -166,3 +166,19 @@ export const getPositionMatrixSchema = z.object({
   device: deviceEnum,
   runLimit: z.number().int().positive().max(26).default(12),
 });
+
+export const getCompetitorsSchema = z.object({
+  projectId: z.string().uuid(),
+  configId: z.string().uuid(),
+  device: deviceEnum,
+  /** Defaults to the latest run with a stored SERP. */
+  runId: z.string().uuid().optional(),
+});
+
+export const getKeywordSerpSchema = z.object({
+  projectId: z.string().uuid(),
+  configId: z.string().uuid(),
+  runId: z.string().uuid(),
+  trackingKeywordId: z.string().uuid(),
+  device: deviceEnum,
+});

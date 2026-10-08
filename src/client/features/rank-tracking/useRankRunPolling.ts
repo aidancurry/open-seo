@@ -33,6 +33,9 @@ export function useRankRunPolling(projectId: string, configId: string) {
         void queryClient.invalidateQueries({
           queryKey: ["rankKeywordHistory", projectId, configId],
         });
+        void queryClient.invalidateQueries({
+          queryKey: ["rankCompetitors", projectId, configId],
+        });
       }
 
       // Keep polling active runs, including stale ones (they'll be cleaned up

@@ -31,8 +31,8 @@ describe("dataforseoPricing", () => {
     {
       name: "live SERP at the default depth (2 pages)",
       estimateUsd: dataforseoPricing.serp.live({ keyword: "seo", ...location }),
-      rawUsd: 0.0035,
-      credits: 5,
+      rawUsd: 0.004,
+      credits: 6,
     },
     {
       name: "live SERP for a keyword with a search operator (billed 5x)",
@@ -40,8 +40,8 @@ describe("dataforseoPricing", () => {
         keyword: "site:example.com seo",
         ...location,
       }),
-      rawUsd: 0.0175,
-      credits: 23,
+      rawUsd: 0.02,
+      credits: 26,
     },
     {
       name: "Lighthouse run",
@@ -159,7 +159,6 @@ describe("dataforseoPricing", () => {
       })),
       ...location,
       depth: 20,
-      targetDomain: "example.com",
     });
     expect(creditsForProviderUsd(estimateUsd)).toBe(
       estimateRankCheckCredits(keywords, "desktop", 20, "queued").costCredits,
